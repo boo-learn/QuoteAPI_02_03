@@ -14,3 +14,12 @@ class AuthorModel(db.Model):
             "id": self.id,
             "name": self.name
         }
+
+# Сериализация:
+# object --> dict --> json
+
+#  Десериализация:
+# json --> dict
+
+# Библиотеки сериализации:
+# Marshmallow / PyDantic
