@@ -15,7 +15,6 @@ class AuthorResource(Resource):
 
         return author.to_dict(), 200
 
-
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument("name", required=True)
