@@ -1,6 +1,7 @@
 from api import Resource, reqparse, db
 from api.models.author import AuthorModel
 from api.models.quote import QuoteModel
+from api.schemas.quote import quote_schema, quotes_schema
 
 
 class QuoteResource(Resource):
@@ -12,16 +13,17 @@ class QuoteResource(Resource):
         """
         if author_id is None and quote_id is None:
             quotes = QuoteModel.query.all()
-            return [quote.to_dict() for quote in quotes]
+            # return [quote.to_dict() for quote in quotes]
+            return quotes_schema.dump(quotes)
 
         author = AuthorModel.query.get(author_id)
         if quote_id is None:
             quotes = author.quotes.all()
-            return [quote.to_dict() for quote in quotes], 200
+            return quotes_schema.dump(quotes), 200
 
         quote = QuoteModel.query.get(quote_id)
         if quote is not None:
-            return quote.to_dict(), 200
+            return quote_schema.dump(quote), 200
         return {"Error": "Quote not found"}, 404
 
     def post(self, author_id):
@@ -33,7 +35,7 @@ class QuoteResource(Resource):
             quote = QuoteModel(author, quote_data["text"])
             db.session.add(quote)
             db.session.commit()
-            return quote.to_dict(), 201
+            return quote_schema.dump(quote), 201
         return {"Error": f"Author id={author_id} not found"}, 404
 
     def put(self, quote_id):
@@ -46,7 +48,7 @@ class QuoteResource(Resource):
         quote.author = new_data["author"]
         quote.text = new_data["text"]
         db.session.commit()
-        return quote.to_dict(), 200
+        return quote_schema.dump(quote), 200
 
     def delete(self, quote_id):
         quote = QuoteModel.query.get(quote_id)
@@ -54,4 +56,4 @@ class QuoteResource(Resource):
             return f"Quote with id {quote_id} not found", 404
         db.session.delete(quote)
         db.session.commit()
-        return quote.to_dict(), 200
+        return quote_schema.dump(quote), 200
