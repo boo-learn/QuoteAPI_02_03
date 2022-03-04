@@ -1,5 +1,7 @@
 from api import db
+from config import Config
 from passlib.apps import custom_app_context as pwd_context
+from itsdangerous import Serializer, BadSignature, SignatureExpired
 
 
 class UserModel(db.Model):
@@ -16,3 +18,20 @@ class UserModel(db.Model):
 
     def verify_password(self, password):
         return pwd_context.verify(password, self.password_hash)
+
+    def generate_auth_token(self, expiration=600):
+        s = Serializer(Config.SECRET_KEY)
+        return s.dumps({'id': self.id})
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(Config.SECRET_KEY)
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return None  # valid token, but expired
+        except BadSignature:
+            return None  # invalid token
+        user = UserModel.query.get(data['id'])
+        return user
+
